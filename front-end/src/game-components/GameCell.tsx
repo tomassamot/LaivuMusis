@@ -5,6 +5,7 @@ interface Props{
     y : number,
     shots: number,
     setShots : Function,
+    isShip: boolean,
 }
 export default function GameCell(props : Props){
     let x = props.x;
@@ -42,6 +43,7 @@ export default function GameCell(props : Props){
     return(
     <div  id={props.x+";"+props.y} style={{border: "1px solid", height: "50px", width: "50px"}} className={"game-cell"} onMouseOver={function(){handleMouseOver()}} onMouseOut={function(){handleMouseOut()}} onClick={()=>handleClick()}>
         <b>{getText()}</b>
+        {props.isShip ? "aaa" : ""}
     </div>
     );
 }
