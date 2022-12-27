@@ -3,7 +3,7 @@ const app = express();
 
 /*app.get("/", (req, res) => {
   res.send("Hello World!");
-});*/
+});  s*/
 
 app.post("/post", (req, res) => {
     console.log("Connected to React");
