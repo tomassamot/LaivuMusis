@@ -1,22 +1,42 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import GameCell from './GameCell';
 
 interface Props{
     shots: number,
     setShots: Function
 }
-interface Tile{
+export interface Tile{
     x: number
     y: number
 }
-interface Ship{
+export interface Ship{
     occupiedTiles: Tile[]
 }
 export default function GameBoard(props : Props){
     //return (<>aaaaaaaaaaaaaaaaaaaaaaaaaaasdf</>);
     let board : JSX.Element[][] = [[]];
-    let allShips : Ship[] = [];
+    //let allShips : Ship[] = [];
+    const [allShips, setAllShips] = useState<Ship[]>([]);
+    const [announcement, setAnnouncement] = useState("");
+    const [shipCounter, setShipCounter] = useState(0);
 
+    useEffect(()=>{
+        setAnnouncement("Loading...");
+        fetch("http://localhost:8080/ships", {
+            method: "POST"
+        })
+        .then(()=>fetch("http://localhost:8080/ships", {
+            method: "GET"
+        }))
+        .then((response)=>response.json())
+        .then((data)=>{
+            console.log(data);
+            setAllShips(data);
+            setAnnouncement("Loaded successfully!");
+            setShipCounter(10);
+        })
+        .catch((error) => console.log(error));
+    },[])
     /*for(let y = 0;y<11;y++){
         board.push([]);
         for(let x = 0;x<11;x++){
@@ -25,6 +45,7 @@ export default function GameBoard(props : Props){
         }
     }*/
 
+    /*
     const checkIfAvailable = (x : number, y : number) =>{
         if(x < 1 || x > 10 || y < 1 || y > 10){
             return false;
@@ -142,7 +163,9 @@ export default function GameBoard(props : Props){
             
         }
     }
+    */
 
+    /*
     for(let k = 0;k<5;k++){
         try{
             // Generating rowboats
@@ -171,9 +194,12 @@ export default function GameBoard(props : Props){
         }
         break;
     }
-    
-    
+    */
 
+    /*
+    // TODO: temporarily to visualize created ships
+    // |
+    // v
     const checkIfIsShip = (x : number, y : number)=>{
         let isShip = false;
 
@@ -187,19 +213,29 @@ export default function GameBoard(props : Props){
         });
         return isShip;
     }
+*/
+    // TODO: temporarily here to visualize created ships. maybe needs to be at top later
+    // |
+    // v
+    console.warn("checking done");
     for(let y = 0;y<11;y++){
         board.push([]);
         for(let x = 0;x<11;x++){
-            let isShip = checkIfIsShip(x,y);
-            board[y].push(<GameCell x={x} y={y} shots={props.shots} setShots={props.setShots} isShip={isShip}/>)
+            //let isShip = checkIfIsShip(x,y);
+            board[y].push(<GameCell x={x} y={y} shots={props.shots} setShots={props.setShots} isShip={/*isShip*/false} allShips={allShips} setAllShips={setAllShips} setAnnouncement={setAnnouncement} setShipCounter={setShipCounter}/>)
         }
     }
+    
     
     return(
         <>
         {/*board.map(cell => {
             return cell;
         })*/}
+        <div className={"h2-wrapper"}>
+            <h2 id={"announcement"}>{announcement}</h2>
+            <h2 id={"ships-counter"}>Ships left: {shipCounter}</h2>
+        </div>
         <table cellPadding={0} cellSpacing={0}>
             <tbody>
         {board.map((row: JSX.Element[]) => {
