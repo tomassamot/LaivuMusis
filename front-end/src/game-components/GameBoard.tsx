@@ -1,10 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import GameCell from './GameCell';
 
-interface Props{
-    shots: number,
-    setShots: Function
-}
 export interface Tile{
     x: number
     y: number
@@ -12,13 +8,15 @@ export interface Tile{
 export interface Ship{
     occupiedTiles: Tile[]
 }
-export default function GameBoard(props : Props){
-    //return (<>aaaaaaaaaaaaaaaaaaaaaaaaaaasdf</>);
+export default function GameBoard(){
     let board : JSX.Element[][] = [[]];
-    //let allShips : Ship[] = [];
+
+    const [shots, setShots] = useState(0);
     const [allShips, setAllShips] = useState<Ship[]>([]);
     const [announcement, setAnnouncement] = useState("");
     const [shipCounter, setShipCounter] = useState(0);
+    const [showTryAgainButton, setShowTryAgainButton] = useState(false);
+    const [refreshBoard, setRefreshBoard] = useState(false);
 
     useEffect(()=>{
         setAnnouncement("Loading...");
@@ -30,230 +28,60 @@ export default function GameBoard(props : Props){
         }))
         .then((response)=>response.json())
         .then((data)=>{
+            
             console.log(data);
             setAllShips(data);
-            setAnnouncement("Loaded successfully!");
+            setShots(25);
             setShipCounter(10);
+
+            setAnnouncement("Loaded successfully!");
+            setRefreshBoard(false);
         })
         .catch((error) => console.log(error));
-    },[])
-    /*for(let y = 0;y<11;y++){
-        board.push([]);
-        for(let x = 0;x<11;x++){
-            
-            board[y].push(<GameCell x={x} y={y} shots={props.shots} setShots={props.setShots}/>)
-        }
-    }*/
+    },[refreshBoard]);
 
-    /*
-    const checkIfAvailable = (x : number, y : number) =>{
-        if(x < 1 || x > 10 || y < 1 || y > 10){
-            return false;
-        }
-
-        let isAvailable = true;
-        allShips.forEach(ship => {
-            ship.occupiedTiles.forEach(tile => {
-                console.log("tile.x: "+tile.x+", x: "+x+", tile.y: "+tile.y+", y: "+y);
-                if((tile.x >= x-1 && tile.x <= x+1) && (tile.y >= y-1 && tile.y <= y+1)){
-                    console.log("is not available!");
-                    isAvailable = false;
-                }
-            });
-        });
-        return isAvailable;
-    }
-
-    const generateShips = (shipAmount : number, occupiedTileAmount : number)=>{
-        let maxIter = 100;
-        let currIter = 0;
-        for(let i = 0;i<shipAmount;i++){
-            console.log("|||||||||||||||||||||||");
-            console.log("ship num "+i);
-            console.log("|||||||||||||||||||||||");
-            let ship : Ship = {occupiedTiles: []};
-    
-            let startX = Math.floor(Math.random() * 10)+1;
-            let startY = Math.floor(Math.random() * 10)+1;
-            console.log("startX: "+startX);
-            console.log("startY: "+startY);
-    
-            let goodDirectionFound = false;
-            for(let j = 0;j<4;j++){ // checking every direction
-                if(goodDirectionFound){
-                    break;
-                }
-                goodDirectionFound = true;
-                switch(j){
-                    case 0: // checking north
-                        for(let k = 0;k<occupiedTileAmount;k++){
-                            console.log("checking startX: "+startX+", startY-k: "+(startY-k));
-                            let isAvailable = checkIfAvailable(startX, startY-k);
-                            if(!isAvailable){console.log("yep not available");
-                                ship.occupiedTiles = [];    // clearing in case changes were made
-                                goodDirectionFound = false;
-                                break;
-                            }
-                            else{console.log("yep  available");
-                                ship.occupiedTiles.push({x: startX, y: startY-k});
-                            }
-                            
-                        }
-                        
-                        break;
-                    case 1: // checking east
-                    for(let k = 0;k<occupiedTileAmount;k++){
-                        let isAvailable = checkIfAvailable(startX+k, startY);
-                        if(!isAvailable){console.log("yep not available");
-                            ship.occupiedTiles = [];    // clearing in case changes were made
-                            goodDirectionFound = false;
-                            break;
-                        }
-                        else{console.log("yep  available");
-                            ship.occupiedTiles.push({x: startX+k, y: startY});
-                        }
-                    }
-                        break;
-                        case 2: // checking south
-                        for(let k = 0;k<occupiedTileAmount;k++){console.log("checking startX:"+startX+", startY+k"+(startY+k));
-                            let isAvailable = checkIfAvailable(startX, startY+k);
-                            if(!isAvailable){console.log("yep not available");
-                                ship.occupiedTiles = [];    // clearing in case changes were made
-                                goodDirectionFound = false;
-                                break;
-                            }
-                            else{console.log("yep  available");
-                                ship.occupiedTiles.push({x: startX, y: startY+k});
-                            }
-                        }
-                        break;
-                        case 3: // checking west
-                        for(let k = 0;k<occupiedTileAmount;k++){console.log("checking startX-k:"+(startX-k)+", startY"+startY);
-                            let isAvailable = checkIfAvailable(startX-k, startY);
-                            if(!isAvailable){console.log("yep not available");
-                                ship.occupiedTiles = [];    // clearing in case changes were made
-                                goodDirectionFound = false;
-                                break;
-                            }
-                            else{console.log("yep  available");
-                                ship.occupiedTiles.push({x: startX-k, y: startY});
-                            }
-                        }
-                        break;
-                }
-            }
-            
-            if(!goodDirectionFound){ // no good position in any direction found, trying again
-                currIter++;
-                if(currIter >= maxIter){    // possible impossible positioning found, need to remake board
-                    console.error("maxIter reached, breaking");
-                    throw new Error("Maximum iterations reached, need restart");
-                }
-
-                console.log("no good direction found, retrying");
-                i--;
-                continue;
-            }
-            else{
-                console.log("——————————————");
-                console.log("new ship with startX:"+ startX+", startY: "+startY+" created");
-                console.log("——————————————");
-                allShips.push(ship);
-            }
-            
-        }
-    }
-    */
-
-    /*
-    for(let k = 0;k<5;k++){
-        try{
-            // Generating rowboats
-            //
-            generateShips(3, 1);
-
-            // Generating submarines
-            //
-            generateShips(3, 2);
-
-            // Generating cruisers
-            //
-            generateShips(2, 3);
-
-            // Generating battleships
-            //
-            generateShips(1, 4);
-
-            // Generating carriers
-            //
-            generateShips(1, 5);
-        }
-        catch (e : any){
-            allShips = [];  // restarting board and trying again
-            continue;
-        }
-        break;
-    }
-    */
-
-    /*
-    // TODO: temporarily to visualize created ships
-    // |
-    // v
-    const checkIfIsShip = (x : number, y : number)=>{
-        let isShip = false;
-
-        allShips.forEach(ship => {
-            ship.occupiedTiles.forEach(tile => {
-                if(tile.x === x && tile.y === y){
-                    //return true;
-                    isShip=true;
-                }
-            });
-        });
-        return isShip;
-    }
-*/
-    // TODO: temporarily here to visualize created ships. maybe needs to be at top later
-    // |
-    // v
-    console.warn("checking done");
     for(let y = 0;y<11;y++){
         board.push([]);
         for(let x = 0;x<11;x++){
-            //let isShip = checkIfIsShip(x,y);
-            board[y].push(<GameCell x={x} y={y} shots={props.shots} setShots={props.setShots} isShip={/*isShip*/false} allShips={allShips} setAllShips={setAllShips} setAnnouncement={setAnnouncement} setShipCounter={setShipCounter}/>)
+            board[y].push(<GameCell x={x} y={y} shots={shots} setShots={setShots} allShips={allShips} setAllShips={setAllShips} announcement={announcement} setAnnouncement={setAnnouncement} setShipCounter={setShipCounter} setShowTryAgainButton={setShowTryAgainButton} refreshBoard={refreshBoard}/>)
         }
     }
     
     
     return(
-        <>
-        {/*board.map(cell => {
-            return cell;
-        })*/}
+
+    <div className={"wrapper"}>
+      <h1>Shots left: {shots}</h1>
+        {
+            showTryAgainButton ? 
+            <div>
+                <button onClick={()=>{setRefreshBoard(true);setShowTryAgainButton(false);}}>
+                    Try again?
+                </button>
+            </div>
+             : ""
+        }
         <div className={"h2-wrapper"}>
             <h2 id={"announcement"}>{announcement}</h2>
             <h2 id={"ships-counter"}>Ships left: {shipCounter}</h2>
         </div>
-        <table cellPadding={0} cellSpacing={0}>
-            <tbody>
-        {board.map((row: JSX.Element[]) => {
-                  return (
-                    <tr key={board.indexOf(row)}>
-                    {row.map((cell: JSX.Element) => {
-                        
+        <div style={{height: "100%", width: "100%", position: "relative"}}>
+            <table cellPadding={0} cellSpacing={0}>
+                <tbody>
+                    {board.map((row: JSX.Element[]) => {
                         return (
-                          <td key={row.indexOf(cell)}>{cell}</td>
+                            <tr key={board.indexOf(row)}>
+                            {row.map((cell: JSX.Element) => {
+                                return (
+                                    <td key={row.indexOf(cell)}>{cell}</td>
+                                );
+                            })}
+                            </tr>
                         );
-                      })}
-                    </tr>
-                  );
-                })}
-            </tbody>
-        </table>
-        
-        </>
-        
+                    })}
+                </tbody>
+            </table>
+        </div>
+    </div>
     );
 }

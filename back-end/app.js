@@ -14,8 +14,8 @@ interface Ship{
     occupiedTiles: Tile[]
 }*/
 
-//let firstTime = true;
 let allShips = [];
+let announcement = "";
 
 app.post("/ships", (req,res)=>{
     allShips=[];
@@ -33,33 +33,26 @@ app.post("/ships", (req,res)=>{
         }
         break;
     }
-    
-    //generateShips(allShips, 2, 2);
-    console.log("job done");
     res.sendStatus(200);
 });
 app.get("/ships", (req,res)=>{
     res.end(JSON.stringify(allShips));
     res.send();
 })
+app.put("/ships", (req, res)=>{
+    allShips = JSON.parse(req.body);
+    res.sendStatus(200);
+})
 
-app.get("/asdf", (req,res)=>{
-    let response = { a:1, b:2, c:3 };
-    //res.send(JSON.stringify(response));
-    res.end(JSON.stringify(response));
+app.get("/announcement", (req,res)=>{
+    res.end(announcement);
     res.send();
 });
-app.get("/aaa", (req,res)=>{
-    res.send("aaaaaaaaaaaaaaaaaaaaaaaaaaasdf");
-});
-app.get("/", (req, res) => {
-  res.send("Hello World!");
+app.put("/announcement", (req,res)=>{
+    announcement = req.body;
+    res.sendStatus(200);
 });
 
-app.post("/post", (req, res) => {
-    console.log("Connected to React");
-    res.redirect("/");
-});
 
 //const PORT = process.env.PORT || 8080;
 const PORT = 8080;
@@ -78,9 +71,7 @@ const checkIfAvailable = (allShips, x, y) =>{
     let isAvailable = true;
     allShips.forEach(ship => {
         ship.occupiedTiles.forEach(tile => {
-            console.log("tile.x: "+tile.x+", x: "+x+", tile.y: "+tile.y+", y: "+y);
             if((tile.x >= x-1 && tile.x <= x+1) && (tile.y >= y-1 && tile.y <= y+1)){
-                console.log("is not available!");
                 isAvailable = false;
             }
         });
@@ -92,15 +83,10 @@ const generateShips = (allShips, shipAmount, occupiedTileAmount)=>{
     let maxIter = 100;
     let currIter = 0;
     for(let i = 0;i<shipAmount;i++){
-        console.log("|||||||||||||||||||||||");
-        console.log("ship num "+i);
-        console.log("|||||||||||||||||||||||");
         let ship = {occupiedTiles: []};
 
         let startX = Math.floor(Math.random() * 10)+1;
         let startY = Math.floor(Math.random() * 10)+1;
-        console.log("startX: "+startX);
-        console.log("startY: "+startY);
 
         let goodDirectionFound = false;
         for(let j = 0;j<4;j++){ // checking every direction
@@ -111,14 +97,13 @@ const generateShips = (allShips, shipAmount, occupiedTileAmount)=>{
             switch(j){
                 case 0: // checking north
                     for(let k = 0;k<occupiedTileAmount;k++){
-                        console.log("checking startX: "+startX+", startY-k: "+(startY-k));
                         let isAvailable = checkIfAvailable(allShips, startX, startY-k);
-                        if(!isAvailable){console.log("yep not available");
+                        if(!isAvailable){
                             ship.occupiedTiles = [];    // clearing in case changes were made
                             goodDirectionFound = false;
                             break;
                         }
-                        else{console.log("yep  available");
+                        else{
                             ship.occupiedTiles.push({x: startX, y: startY-k});
                         }
                         
@@ -128,38 +113,38 @@ const generateShips = (allShips, shipAmount, occupiedTileAmount)=>{
                 case 1: // checking east
                 for(let k = 0;k<occupiedTileAmount;k++){
                     let isAvailable = checkIfAvailable(allShips, startX+k, startY);
-                    if(!isAvailable){console.log("yep not available");
+                    if(!isAvailable){
                         ship.occupiedTiles = [];    // clearing in case changes were made
                         goodDirectionFound = false;
                         break;
                     }
-                    else{console.log("yep  available");
+                    else{
                         ship.occupiedTiles.push({x: startX+k, y: startY});
                     }
                 }
                     break;
                     case 2: // checking south
-                    for(let k = 0;k<occupiedTileAmount;k++){console.log("checking startX:"+startX+", startY+k"+(startY+k));
+                    for(let k = 0;k<occupiedTileAmount;k++){
                         let isAvailable = checkIfAvailable(allShips, startX, startY+k);
-                        if(!isAvailable){console.log("yep not available");
+                        if(!isAvailable){
                             ship.occupiedTiles = [];    // clearing in case changes were made
                             goodDirectionFound = false;
                             break;
                         }
-                        else{console.log("yep  available");
+                        else{
                             ship.occupiedTiles.push({x: startX, y: startY+k});
                         }
                     }
                     break;
                     case 3: // checking west
-                    for(let k = 0;k<occupiedTileAmount;k++){console.log("checking startX-k:"+(startX-k)+", startY"+startY);
+                    for(let k = 0;k<occupiedTileAmount;k++){
                         let isAvailable = checkIfAvailable(allShips, startX-k, startY);
-                        if(!isAvailable){console.log("yep not available");
+                        if(!isAvailable){
                             ship.occupiedTiles = [];    // clearing in case changes were made
                             goodDirectionFound = false;
                             break;
                         }
-                        else{console.log("yep  available");
+                        else{
                             ship.occupiedTiles.push({x: startX-k, y: startY});
                         }
                     }
@@ -179,9 +164,6 @@ const generateShips = (allShips, shipAmount, occupiedTileAmount)=>{
             continue;
         }
         else{
-            console.log("——————————————");
-            console.log("new ship with startX:"+ startX+", startY: "+startY+" created");
-            console.log("——————————————");
             allShips.push(ship);
         }
         

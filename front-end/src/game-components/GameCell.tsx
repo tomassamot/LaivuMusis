@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {Tile, Ship} from "./GameBoard";
 
 interface Props{
@@ -6,11 +6,13 @@ interface Props{
     y : number,
     shots: number,
     setShots : Function,
-    isShip: boolean,
     allShips: Ship[],
     setAllShips: Function,
+    announcement: string,
     setAnnouncement: Function,
     setShipCounter: Function,
+    setShowTryAgainButton: Function,
+    refreshBoard : boolean,
 }
 export default function GameCell(props : Props){
     const [currentBackground, setCurrentBackground] = useState("gray");
@@ -19,19 +21,9 @@ export default function GameCell(props : Props){
     let x = props.x;
     let y = props.y;
 
-    const checkIfIsShip = ()=>{
-        let isShip = false;
-
-        allShips.forEach(ship => {
-            ship.occupiedTiles.forEach(tile => {
-                if(tile.x === x && tile.y === y){
-                    //return true;
-                    isShip=true;
-                }
-            });
-        });
-        return isShip;
-    }
+    useEffect(()=>{
+        setCurrentBackground("gray");
+    }, [props.refreshBoard])
 
     const handleMouseOver = ()=>{
         let div = document.getElementById(props.x+";"+props.y);
@@ -46,12 +38,7 @@ export default function GameCell(props : Props){
         }
     }
     const handleClick = ()=>{
-        console.log("clicked on "+x+", "+y);
-        if(x === 0 && y === 0){
-            console.log(JSON.stringify(allShips));
-            return;
-        }
-        if(x === 0 || y === 0 || currentBackground !== "gray"){ // shooting at axis label or already shot at tile
+        if(x === 0 || y === 0 || currentBackground !== "gray" || props.shots <= 0 || props.announcement === "Loading..."){ // shooting at axis label, already shot at tile or no more shots left
             return;
         }
 
@@ -65,16 +52,14 @@ export default function GameCell(props : Props){
                     props.setAnnouncement("Hit!");
                     setCurrentBackground("red");
                     ship.occupiedTiles.splice(j, 1);
+
                     if(ship.occupiedTiles.length === 0){ // ship destroyed
                         props.setAnnouncement("You sunk a battleship!");
                         allShips.splice(i, 1);
                         props.setShipCounter(allShips.length);
-                        console.warn("SHIP DESTROYED");
+
                         if(allShips.length === 0){ // all ships destroyed
-                            console.warn("—————————————————");
-                            console.warn("WINNER");
-                            console.warn("———————————————");
-                            props.setAnnouncement("You win!");
+                            props.setAnnouncement("VICTORY!");
                         }
                     }
                     break;
@@ -82,8 +67,14 @@ export default function GameCell(props : Props){
             }
         }
         if(!isShip){
-            props.setAnnouncement("Missed.");
-            props.setShots(props.shots - 1)
+            if(props.shots - 1 <= 0){   // Out of shots
+                props.setAnnouncement("Defeat!")
+                props.setShowTryAgainButton(true);
+            }
+            else{
+                props.setAnnouncement("Missed.");
+            }
+            props.setShots(props.shots - 1);
             setCurrentBackground("rgb(0, 132, 255)");
         }
     }
@@ -100,9 +91,8 @@ export default function GameCell(props : Props){
     }
    
     return(
-    <div  id={props.x+";"+props.y} style={{background: currentBackground, border: "1px solid", height: "50px", width: "50px"}} className={"game-cell"} onMouseOver={function(){handleMouseOver()}} onMouseOut={function(){handleMouseOut()}} onClick={()=>handleClick()}>
+    <div  id={props.x+";"+props.y} style={{background: currentBackground}} className={"game-cell"} onMouseOver={function(){handleMouseOver()}} onMouseOut={function(){handleMouseOut()}} onClick={()=>handleClick()}>
         <b>{getText()}</b>
-        {props.isShip ? "aaa" : ""}
     </div>
     );
 }
